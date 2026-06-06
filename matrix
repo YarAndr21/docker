@@ -1,0 +1,47 @@
+class Matrix:
+    def __init__(self, m, n):
+        self.rows = m
+        self.cols = n
+        self.data = [0] * (m * n)
+
+    def fill(self, items):
+        for i in range(self.rows):
+            for j in range(self.cols):
+                self.data[i * self.cols + j] = items[i][j]
+
+    def print(self):
+        for i in range(self.rows):
+            row_str = ''
+            for j in range(self.cols):
+                row_str += str(self.data[i * self.cols + j]) + ' '
+            print(row_str)
+M = Matrix(3, 3)
+M.fill([
+    [1, -2, 3],
+    [-4, 5, -6],
+    [7, -8, 9]
+])
+print("Матрица:")
+M.print()
+# Вычисление норм
+# Фробениуса
+sum_sq = 0
+for i in range(3):
+    for j in range(3):
+        sum_sq += M.data[i * 3 + j] ** 2
+frob_norm = sum_sq ** 0.5
+# Первая норма 
+col_sums = [0, 0, 0]
+for col in range(3):
+    for row in range(3):
+        col_sums[col] += abs(M.data[row * 3 + col])
+first_norm = max(col_sums)
+# Бесконечная норма 
+row_sums = [0, 0, 0]
+for row in range(3):
+    for col in range(3):
+        row_sums[row] += abs(M.data[row * 3 + col])
+inf_norm = max(row_sums)
+print("\nНорма Фробениуса:", round(frob_norm, 4))
+print("Первая норма:", first_norm)
+print("Бесконечная норма:", inf_norm)
