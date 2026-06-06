@@ -15,8 +15,11 @@ class Matrix:
             for j in range(self.cols):
                 row_str += str(self.data[i * self.cols + j]) + ' '
             print(row_str)
+
+
+# не заметил в отчете что не заменил на fill, извините пожалуйста
 M = Matrix(3, 3)
-M.fill([
+M.zap([
     [1, -2, 3],
     [-4, 5, -6],
     [7, -8, 9]
@@ -45,3 +48,4 @@ inf_norm = max(row_sums)
 print("\nНорма Фробениуса:", round(frob_norm, 4))
 print("Первая норма:", first_norm)
 print("Бесконечная норма:", inf_norm)
+
