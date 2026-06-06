@@ -1,0 +1,199 @@
+# Модуль 1 
+# задание 1
+import random
+import math
+import string 
+def gen_pw(l=12):
+    ch = al + d + p
+    return ''.join(random.choice(ch) for _ in range(l))
+def eval_pw(pw):
+    tc = 0
+    if any(c.islower() for c in pw): tc += 26
+    if any(c.isupper() for c in pw): tc += 26
+    if any(c.isdigit() for c in pw): tc += 10
+    if any(c in p for c in pw): tc += 32
+    ent = len(pw) * math.log2(tc or 1)
+    if ent < 30:
+        st = "слабый"
+    elif ent < 50:
+        st = "средний"
+    else:
+        st = "сильный"
+
+    return round(ent, 2), st
+
+p = gen_pw(12)
+e, s = eval_pw(p)
+
+print(f"Пароль: {p}")
+print(f"Энтропия: {e} бит")
+print(f"Стойкость: {s}")
+
+
+
+
+
+# Задание 4
+def xc(d, k):
+    if isinstance(d, str):
+        d = d.encode('utf-8')
+    kb = k.encode('utf-8')
+    ext_kb = (kb * (len(d) // len(kb) + 1))[:len(d)]
+    return bytes(a ^ b for a, b in zip(d, ext_kb))
+t = "Прикладная информатика"
+ky = "секрет"
+e = xc(t, ky)
+d = xc(e, ky).decode('utf-8')
+print(f"Исходный: {t}")
+print(f"Зашифровано (hex): {e.hex()}")
+print(f"Расшифровано: {d}")
+
+
+
+
+# Модуль 2
+# Задание 6
+def compute_hash(text):
+    return sum(ord(char) for char in text) % 10000
+def find_matches(hash_value):
+    return [f"{num:04d}" for num in range(10000) if compute_hash(f"{num:04d}") == hash_value]
+user_hash = int(input("Введите хеш (число от 0 до 9999): "))
+matches = find_matches(user_hash)
+print(f"\nПароли с хэшем {user_hash}: {matches}")
+print(f"Всего найдено: {len(matches)}")
+print(f"Пример: {matches[0] if matches else 'не найдено'}")
+
+
+
+# Модуль 4
+Задание 17
+from PIL import Image
+def bt(t):
+    return ''.join(format(ord(c), '08b') for c in t) + '1111111111111110'
+def tb(b):
+    c = [chr(int(b[i:i+8], 2)) for i in range(0, len(b), 8)]
+    return ''.join(c).split('\xfe')[0]
+def h(n, t, o):
+    i = Image.open(n)
+    p = i.load()
+    b = bt(t)
+    w, hh = i.size
+    k = 0
+    for x in range(w):
+        for y in range(hh):
+            r, g, bv = p[x, y]
+            if k < len(b):
+                r = (r & 254) | int(b[k]); k += 1
+            if k < len(b):
+                g = (g & 254) | int(b[k]); k += 1
+            if k < len(b):
+                bv = (bv & 254) | int(b[k]); k += 1
+            p[x, y] = (r, g, bv)
+    i.save(o)
+    print(f"Спрятано {len(t)} символов")
+def e(n):
+    i = Image.open(n)
+    p = i.load()
+    b = ''
+    w, hh = i.size
+    for x in range(w):
+        for y in range(hh):
+            r, g, bv = p[x, y]
+            b += str(r & 1) + str(g & 1) + str(bv & 1)
+            if '1111111111111110' in b:
+                return tb(b[:b.find('1111111111111110')])
+    return tb(b)
+print("Начинаем расшифровку")
+h('foto.jpg', 'розовый фламинго', 'foto_secret.png')
+msg = e('foto_secret.png')
+print(f"Извлечено: {msg}")
+import os
+print(f"\nРазмер исходного фото: {os.path.getsize('foto.jpg')} байт")
+print(f"Размер фото с секретом: {os.path.getsize('foto_secret.png')} байт")
+print("\n Проверьте папку — появился файл foto_secret.png")
+
+
+
+
+# Задание 18
+import exifread
+def ap(p):
+    with open(p, 'rb') as f:
+        t = exifread.process_file(f)
+    print("=" * 50)
+    print(f"Анализ файла: {p}")
+    print("=" * 50)
+    r = []
+    m = t.get('Image Model', None)
+    if m:
+        print(f" Модель устройства: {m}")
+        r.append("модель устройства")
+    else:
+        print(" Модель устройства: не найдена")
+    d = t.get('EXIF DateTimeOriginal', None)
+    if not d:
+        d = t.get('Image DateTime', None)
+    if d:
+        print(f"Дата съёмки: {d}")
+        r.append("дата съёмки")
+    else:
+        print(" Дата съёмки: не найдена")
+    gl = t.get('GPS GPSLatitude', None)
+    glon = t.get('GPS GPSLongitude', None)
+    if gl and glon:
+        def gtd(coord):
+            v = coord.values
+            d = float(v[0].num) / float(v[0].den)
+            m = float(v[1].num) / float(v[1].den)
+            s = float(v[2].num) / float(v[2].den)
+            return d + m / 60 + s / 3600
+        la = gtd(gl)
+        lo = gtd(glon)
+        lar = t.get('GPS GPSLatitudeRef', None)
+        lonr = t.get('GPS GPSLongitudeRef', None)
+        if lar and str(lar).strip() == 'S':
+            la = -la
+        if lonr and str(lonr).strip() == 'W':
+            lo = -lo
+        print(f"GPS координаты: {la:.6f}, {lo:.6f}")
+        r.append("GPS-координаты")
+    else:
+        print(" GPS координаты: не найдены")
+    print("\n" + "=" * 50)
+    if r:
+        print("Обратите внимание:")
+        print(f"Фотография содержит: {', '.join(r)}")
+        print("\nИнформация может указывать на:")
+        print("- Время и место съёмки")
+        print("- Использованное устройство")
+        print("\Перед публикацией можно удалить метаданные")
+    else:
+        print("Конфиденциальные данные не найдены")
+    print("=" * 50)
+f = "png.jpg"
+try:
+    ap(f)
+except FileNotFoundError:
+    print(f"Ошибка: Файл '{f}' не найден!")
+    print("Проверьте, что файл лежит в той же папке")
+
+
+
+
+# Задание 20
+m = int(input("Введите модуль m: "))
+s = int(input("Введите секретный ключ: "))
+x = int(input("Число x: "))
+y = int(input("Число y: "))
+ex = (x * s) % m
+ey = (y * s) % m
+inv = pow(s, -1, m)
+dx = (ex * inv) % m
+dy = (ey * inv) % m
+mul_enc = (ex * ey) % m
+mul_dec = (mul_enc * inv) % m
+print(f"\n{x} * {y} = {x*y}")
+print(f"Enc({x}) = {ex}, Enc({y}) = {ey}")
+print(f"Enc({x}) * Enc({y}) = {mul_enc}")
+print(f"Dec(Enc({x})*Enc({y})) = {mul_dec}")
+print(f"Совпадает? {mul_dec == x*y}")
